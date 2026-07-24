@@ -2,14 +2,16 @@ import * as brevo from '@getbrevo/brevo';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Configuración de la API de Brevo
-const apiInstance = new brevo.TransactionalEmailsApi();
-const apiKey = apiInstance.authentications['apiKey'];
-apiKey.apiKey = process.env.BREVO_API_KEY;
-
 // ===== ENVÍO DE CÓDIGO DE VERIFICACIÓN =====
 export const sendVerificationEmail = async (toEmail, code) => {
   try {
+    // 1. Crear instancia de la API
+    const apiInstance = new brevo.TransactionalEmailsApi();
+    
+    // 2. Establecer la API Key correctamente con setApiKey
+    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+
+    // 3. Crear el objeto de email
     const sendSmtpEmail = new brevo.SendSmtpEmail();
     sendSmtpEmail.subject = 'Código de Verificación - SysPress';
     sendSmtpEmail.to = [{ email: toEmail }];
@@ -24,11 +26,12 @@ export const sendVerificationEmail = async (toEmail, code) => {
         <p>Saludos,<br/>El equipo de SysPress</p>
       </div>
     `;
-    sendSmtpEmail.sender = { 
+    sendSmtpEmail.sender = {
       name: 'SysPress',
       email: process.env.FROM_EMAIL || 'no-reply@syspress.com'
     };
 
+    // 4. Enviar el email
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log('Correo enviado correctamente:', response);
     return true;
@@ -41,6 +44,9 @@ export const sendVerificationEmail = async (toEmail, code) => {
 // ===== ENVÍO DE CÓDIGO PARA RECUPERACIÓN DE CONTRASEÑA =====
 export const sendResetPasswordEmail = async (toEmail, code) => {
   try {
+    const apiInstance = new brevo.TransactionalEmailsApi();
+    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+
     const sendSmtpEmail = new brevo.SendSmtpEmail();
     sendSmtpEmail.subject = 'Recuperación de contraseña - SysPress';
     sendSmtpEmail.to = [{ email: toEmail }];
@@ -56,7 +62,7 @@ export const sendResetPasswordEmail = async (toEmail, code) => {
         <p>Saludos,<br/>El equipo de SysPress</p>
       </div>
     `;
-    sendSmtpEmail.sender = { 
+    sendSmtpEmail.sender = {
       name: 'SysPress',
       email: process.env.FROM_EMAIL || 'no-reply@syspress.com'
     };
