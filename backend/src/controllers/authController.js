@@ -39,9 +39,8 @@ export const register = async (req, res) => {
     console.log(`📧 ¿Correo enviado? ${emailSent}`);
 
     if (!emailSent) {
-      console.error(`❌ No se pudo enviar correo a ${email}`);
       return res.status(500).json({
-        error: 'No se pudo enviar el correo de verificación. Intenta más tarde.',
+        error: 'No se pudo enviar el correo de verificación. Intenta más tarde o usa el reenvío.',
         userId: user.id,
         requiresVerification: true,
       });
