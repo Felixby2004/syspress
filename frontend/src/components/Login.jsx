@@ -31,7 +31,7 @@ const Login = () => {
           <i className="bi bi-heart-pulse" style={{ fontSize: '3rem', color: 'var(--accent)' }}></i>
         </div>
         <h1>SysPress</h1>
-        <p className="subtitle">Anota y monitorea tus presion arterial</p>
+        <p className="subtitle">Anota su presión arterial y peso corporal</p>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label><i className="bi bi-envelope"></i> Email</label>
