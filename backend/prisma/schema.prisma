@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String?  @db.VarChar(100)
+  email                   String   @unique @db.VarChar(255)
+  password                String   @map("password_hash") @db.Text
+  verificationCodeHash    String?  @map("verification_code_hash") @db.Text
+  isVerified              Boolean  @default(false) @map("is_verified")
+  // Campos para recuperación de contraseña
+  resetPasswordToken   String?   @map("reset_password_token") @db.Text
+  resetPasswordExpires DateTime? @map("reset_password_expires") @db.Timestamptz(6)
+  readings                Reading[]
+  weights                 Weight[]
+  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("users")
+}
+
+model Reading {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  systolic   Int      @db.Integer
+  diastolic  Int      @db.Integer
+  pulse      Int?     @db.Integer
+  measuredAt DateTime @default(now()) @map("measured_at") @db.Timestamptz(6)
+  notes      String?  @db.Text
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, measuredAt(sort: Desc)])
+  @@index([userId, active])
+  @@map("readings")
+}
+
+model Weight {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  weight     Decimal  @db.Decimal(5,2)
+  measuredAt DateTime @default(now()) @map("measured_at") @db.Timestamptz(6)
+  notes      String?  @db.Text
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, measuredAt(sort: Desc)])
+  @@index([userId, active])
+  @@map("weights")
+}
