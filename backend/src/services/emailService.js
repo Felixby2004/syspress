@@ -2,12 +2,22 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Configuración para Gmail con OAuth2 o contraseña de aplicación
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465, // Usar 465 con SSL (más estable que 587)
+  secure: true, // true para 465, false para 587
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASS,
   },
+  tls: {
+    rejectUnauthorized: false, // Permite conexiones sin verificar certificado
+  },
+  connectionTimeout: 30000, // 30 segundos
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
+  debug: true, // Activar logs para depuración (opcional, eliminar en producción)
 });
 
 // ===== ENVÍO DE CÓDIGO DE VERIFICACIÓN =====
