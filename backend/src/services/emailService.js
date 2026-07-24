@@ -2,11 +2,16 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Configuración para Brevo (Sendinblue)
+console.log('🔧 Configurando emailService...');
+console.log('SMTP_HOST:', process.env.SMTP_HOST);
+console.log('SMTP_USER:', process.env.SMTP_USER);
+console.log('SMTP_PORT:', process.env.SMTP_PORT);
+console.log('FROM_EMAIL:', process.env.FROM_EMAIL);
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true para 465, false para otros
+  secure: false,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -19,8 +24,18 @@ const transporter = nodemailer.createTransport({
   socketTimeout: 10000,
 });
 
+// Verificar conexión al iniciar
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ Error al conectar con SMTP:', error);
+  } else {
+    console.log('✅ Conexión SMTP establecida correctamente');
+  }
+});
+
 // ===== ENVÍO DE CÓDIGO DE VERIFICACIÓN =====
 export const sendVerificationEmail = async (toEmail, code) => {
+  console.log(`📧 Enviando correo de verificación a ${toEmail}...`);
   try {
     const info = await transporter.sendMail({
       from: `"SysPress" <${process.env.FROM_EMAIL || 'no-reply@syspress.com'}>`,
@@ -38,16 +53,18 @@ export const sendVerificationEmail = async (toEmail, code) => {
         </div>
       `,
     });
-    console.log('Correo de verificación enviado:', info.messageId);
+    console.log('✅ Correo de verificación enviado:', info.messageId);
     return true;
   } catch (error) {
-    console.error('Error al enviar correo de verificación:', error);
+    console.error('❌ Error al enviar correo de verificación:', error);
+    console.error('Detalles:', error.response || error.message);
     return false;
   }
 };
 
 // ===== ENVÍO DE CÓDIGO PARA RECUPERACIÓN DE CONTRASEÑA =====
 export const sendResetPasswordEmail = async (toEmail, code) => {
+  console.log(`📧 Enviando correo de recuperación a ${toEmail}...`);
   try {
     const info = await transporter.sendMail({
       from: `"SysPress" <${process.env.FROM_EMAIL || 'no-reply@syspress.com'}>`,
@@ -66,10 +83,11 @@ export const sendResetPasswordEmail = async (toEmail, code) => {
         </div>
       `,
     });
-    console.log('Correo de recuperación enviado:', info.messageId);
+    console.log('✅ Correo de recuperación enviado:', info.messageId);
     return true;
   } catch (error) {
-    console.error('Error al enviar correo de recuperación:', error);
+    console.error('❌ Error al enviar correo de recuperación:', error);
+    console.error('Detalles:', error.response || error.message);
     return false;
   }
 };

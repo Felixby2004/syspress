@@ -12,7 +12,6 @@ export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validar nombre
     if (!name || name.trim().length < 2) {
       return res.status(400).json({ error: 'El nombre debe tener al menos 2 caracteres' });
     }
@@ -22,7 +21,6 @@ export const register = async (req, res) => {
       if (existing.isVerified) {
         return res.status(400).json({ error: 'El email ya está registrado y verificado.' });
       }
-      // Si existe pero no verificado, actualizar código y reenviar
       const newCode = crypto.randomInt(100000, 999999).toString();
       await User.updateVerificationCode(email, newCode);
       await sendVerificationEmail(email, newCode);
@@ -33,14 +31,15 @@ export const register = async (req, res) => {
       });
     }
 
-    // Crear nuevo usuario
     const code = crypto.randomInt(100000, 999999).toString();
     const user = await User.create({ name, email, password, verificationCode: code });
 
-    // Intentar enviar correo
+    console.log(`📧 Intentando enviar correo a ${email} con código ${code}`);
     const emailSent = await sendVerificationEmail(email, code);
+    console.log(`📧 ¿Correo enviado? ${emailSent}`);
+
     if (!emailSent) {
-      // Si falla, devolver error pero con el userId para que el frontend pueda reintentar
+      console.error(`❌ No se pudo enviar correo a ${email}`);
       return res.status(500).json({
         error: 'No se pudo enviar el correo de verificación. Intenta más tarde.',
         userId: user.id,
@@ -54,7 +53,7 @@ export const register = async (req, res) => {
       requiresVerification: true,
     });
   } catch (error) {
-    console.error('Error en registro:', error);
+    console.error('❌ Error en registro:', error);
     res.status(500).json({ error: 'Error al registrar usuario' });
   }
 };
