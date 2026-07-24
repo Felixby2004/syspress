@@ -2,38 +2,34 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Configuración para entornos cloud (Render, Heroku, etc.)
+// Configuración para Brevo (Sendinblue)
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465, // Puerto SSL (más fiable que 587)
-  secure: true, // SSL
+  host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: false, // true para 465, false para otros
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASS,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
-  // Opciones de timeout y conexión
-  connectionTimeout: 30000, // 30 segundos
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
   tls: {
-    rejectUnauthorized: false, // Necesario en algunos entornos
+    rejectUnauthorized: false,
   },
-  // Mantener conexión abierta para múltiples envíos
-  pool: true,
-  maxConnections: 5,
-  rateLimit: 10, // Máximo 10 correos por segundo
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
+// ===== ENVÍO DE CÓDIGO DE VERIFICACIÓN =====
 export const sendVerificationEmail = async (toEmail, code) => {
   try {
     const info = await transporter.sendMail({
-      from: `"SysPress" <${process.env.GMAIL_USER}>`,
+      from: `"SysPress" <${process.env.FROM_EMAIL || 'no-reply@syspress.com'}>`,
       to: toEmail,
       subject: 'Código de Verificación - SysPress',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
           <h2 style="color: #2a7de1;">Bienvenido a SysPress</h2>
-          <p>Haz clic en el siguiente enlace o ingresa el código en la aplicación:</p>
+          <p>Tu código de verificación es:</p>
           <div style="background: #f5f7fa; padding: 12px; border-radius: 6px; text-align: center; font-size: 24px; letter-spacing: 4px; font-weight: bold; color: #1a2a3a;">
             ${code}
           </div>
@@ -50,10 +46,11 @@ export const sendVerificationEmail = async (toEmail, code) => {
   }
 };
 
+// ===== ENVÍO DE CÓDIGO PARA RECUPERACIÓN DE CONTRASEÑA =====
 export const sendResetPasswordEmail = async (toEmail, code) => {
   try {
     const info = await transporter.sendMail({
-      from: `"SysPress" <${process.env.GMAIL_USER}>`,
+      from: `"SysPress" <${process.env.FROM_EMAIL || 'no-reply@syspress.com'}>`,
       to: toEmail,
       subject: 'Recuperación de contraseña - SysPress',
       html: `
