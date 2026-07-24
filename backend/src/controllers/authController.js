@@ -40,7 +40,7 @@ export const register = async (req, res) => {
 
     if (!emailSent) {
       return res.status(500).json({
-        error: 'No se pudo enviar el correo de verificación. Intenta más tarde o usa el reenvío.',
+        error: 'No se pudo enviar el correo de verificación. Intenta más tarde.',
         userId: user.id,
         requiresVerification: true,
       });
