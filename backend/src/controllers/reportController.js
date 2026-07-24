@@ -15,7 +15,6 @@ function classifyBloodPressure(systolic, diastolic) {
 
 export const getReport = async (req, res) => {
   try {
-    console.log('📊 getReport llamado');
     const { from, to } = req.query;
     const readings = await Reading.findByUserId(req.userId, 1000, 0);
     const weights = await Weight.findByUserId(req.userId);

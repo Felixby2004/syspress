@@ -6,6 +6,8 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import LoadingScreen from './components/LoadingScreen';
+
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -14,7 +16,10 @@ function PrivateRoute({ children }) {
 
 function App() {
   const { loading } = useAuth();
-  if (loading) return <div>Cargando...</div>;
+  
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <BrowserRouter>

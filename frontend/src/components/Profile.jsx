@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import PasswordInput from './PasswordInput';
 
 const Profile = () => {
   const { user, setUser } = useAuth();
@@ -59,6 +60,7 @@ const Profile = () => {
         <div className="profile-info">
           <p><strong><i className="bi bi-person"></i> Nombre:</strong> {user?.name || 'Sin nombre'}</p>
           <p><strong><i className="bi bi-envelope"></i> Email:</strong> {user?.email}</p>
+          <p><strong><i className="bi bi-calendar"></i> Miembro desde:</strong> {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}</p>
         </div>
 
         <div className="profile-form">
@@ -77,18 +79,30 @@ const Profile = () => {
         <div className="profile-form">
           <h3>Cambiar contraseña</h3>
           <form onSubmit={handleChangePassword}>
-            <div className="form-group">
-              <label>Contraseña actual</label>
-              <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required />
-            </div>
-            <div className="form-group">
-              <label>Nueva contraseña</label>
-              <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
-            </div>
-            <div className="form-group">
-              <label>Confirmar nueva contraseña</label>
-              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
-            </div>
+            <PasswordInput
+              label="Contraseña actual"
+              id="current-password"
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              placeholder="Ingresa tu contraseña actual"
+              required
+            />
+            <PasswordInput
+              label="Nueva contraseña"
+              id="new-password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+              required
+            />
+            <PasswordInput
+              label="Confirmar nueva contraseña"
+              id="confirm-password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              placeholder="Repite la nueva contraseña"
+              required
+            />
             <button type="submit" className="btn-primary">
               <i className="bi bi-shield-lock"></i> Cambiar contraseña
             </button>
