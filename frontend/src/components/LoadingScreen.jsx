@@ -13,7 +13,7 @@ const LoadingScreen = () => {
         </div>
         <div className="loading-spinner">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Cargando...</span>
+            <span className="visually-hidden">...</span>
           </div>
         </div>
         <p className="loading-text">Cargando SysPress...</p>
