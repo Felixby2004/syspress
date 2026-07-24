@@ -1,11 +1,12 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
-import { sendVerificationEmail, sendPasswordResetEmail } from '../services/emailService.js';
+import { sendVerificationEmail, sendResetPasswordEmail } from '../services/emailService.js';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import prisma from '../prisma.js';
 dotenv.config();
+
 
 export const register = async (req, res) => {
   try {
@@ -21,6 +22,7 @@ export const register = async (req, res) => {
       if (existing.isVerified) {
         return res.status(400).json({ error: 'El email ya está registrado y verificado.' });
       }
+      // Si existe pero no verificado, actualizar código y reenviar
       const newCode = crypto.randomInt(100000, 999999).toString();
       await User.updateVerificationCode(email, newCode);
       await sendVerificationEmail(email, newCode);
@@ -31,12 +33,19 @@ export const register = async (req, res) => {
       });
     }
 
+    // Crear nuevo usuario
     const code = crypto.randomInt(100000, 999999).toString();
     const user = await User.create({ name, email, password, verificationCode: code });
 
+    // Intentar enviar correo
     const emailSent = await sendVerificationEmail(email, code);
     if (!emailSent) {
-      return res.status(500).json({ error: 'Error al enviar el correo de verificación' });
+      // Si falla, devolver error pero con el userId para que el frontend pueda reintentar
+      return res.status(500).json({
+        error: 'No se pudo enviar el correo de verificación. Intenta más tarde.',
+        userId: user.id,
+        requiresVerification: true,
+      });
     }
 
     res.status(201).json({
@@ -45,7 +54,8 @@ export const register = async (req, res) => {
       requiresVerification: true,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error en registro:', error);
+    res.status(500).json({ error: 'Error al registrar usuario' });
   }
 };
 

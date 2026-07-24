@@ -2,25 +2,28 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Configuración para Gmail con OAuth2 o contraseña de aplicación
+// Configuración para entornos cloud (Render, Heroku, etc.)
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465, // Usar 465 con SSL (más estable que 587)
-  secure: true, // true para 465, false para 587
+  port: 465, // Puerto SSL (más fiable que 587)
+  secure: true, // SSL
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASS,
   },
-  tls: {
-    rejectUnauthorized: false, // Permite conexiones sin verificar certificado
-  },
+  // Opciones de timeout y conexión
   connectionTimeout: 30000, // 30 segundos
   greetingTimeout: 30000,
   socketTimeout: 30000,
-  debug: true, // Activar logs para depuración (opcional, eliminar en producción)
+  tls: {
+    rejectUnauthorized: false, // Necesario en algunos entornos
+  },
+  // Mantener conexión abierta para múltiples envíos
+  pool: true,
+  maxConnections: 5,
+  rateLimit: 10, // Máximo 10 correos por segundo
 });
 
-// ===== ENVÍO DE CÓDIGO DE VERIFICACIÓN =====
 export const sendVerificationEmail = async (toEmail, code) => {
   try {
     const info = await transporter.sendMail({
@@ -47,8 +50,7 @@ export const sendVerificationEmail = async (toEmail, code) => {
   }
 };
 
-// ===== ENVÍO DE CÓDIGO PARA RECUPERACIÓN DE CONTRASEÑA =====
-export const sendPasswordResetEmail = async (toEmail, code) => {
+export const sendResetPasswordEmail = async (toEmail, code) => {
   try {
     const info = await transporter.sendMail({
       from: `"SysPress" <${process.env.GMAIL_USER}>`,
