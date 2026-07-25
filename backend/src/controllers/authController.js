@@ -148,9 +148,9 @@ export const forgotPassword = async (req, res) => {
     }
 
     const code = crypto.randomInt(100000, 999999).toString();
-    await User.setResetPasswordCode(email, code); // ← método que guarda en BD
+    await User.setResetPasswordCode(email, code);
 
-    // ✅ Usar la función correcta
+    // ✅ CORREGIDO: usar sendResetPasswordEmail
     const emailSent = await sendResetPasswordEmail(email, code);
     if (!emailSent) {
       return res.status(500).json({ error: 'Error al enviar el correo de recuperación' });
