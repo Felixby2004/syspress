@@ -176,7 +176,7 @@ export const verifyResetCode = async (req, res) => {
   }
 };
 
-// Restablecer contraseña con código verificado
+// ===== RECUPERACIÓN DE CONTRASEÑA =====
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -200,15 +200,15 @@ export const forgotPassword = async (req, res) => {
       },
     });
 
-    // Enviar correo
-    const emailSent = await sendPasswordResetEmail(email, code);
+    // ✅ Enviar correo con la función correcta
+    const emailSent = await sendResetPasswordEmail(email, code); // <- CAMBIADO AQUÍ
     if (!emailSent) {
       return res.status(500).json({ error: 'Error al enviar el correo de recuperación' });
     }
 
     res.status(200).json({ message: 'Se ha enviado un código de recuperación a tu correo.' });
   } catch (error) {
-    console.error(error);
+    console.error('Error en forgotPassword:', error);
     res.status(500).json({ error: 'Error al procesar la solicitud' });
   }
 };
@@ -217,7 +217,6 @@ export const resetPassword = async (req, res) => {
   try {
     const { email, code, newPassword } = req.body;
 
-    // Validar que la nueva contraseña tenga al menos 6 caracteres
     if (!newPassword || newPassword.length < 6) {
       return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
     }
@@ -227,7 +226,6 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'Email no registrado' });
     }
 
-    // Verificar que el token exista y no haya expirado
     if (!user.resetPasswordToken || !user.resetPasswordExpires) {
       return res.status(400).json({ error: 'No hay solicitud de recuperación activa' });
     }
@@ -236,16 +234,12 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'El código de recuperación ha expirado' });
     }
 
-    // Comparar código
     const isValid = await bcrypt.compare(code, user.resetPasswordToken);
     if (!isValid) {
       return res.status(400).json({ error: 'Código de recuperación incorrecto' });
     }
 
-    // Hashear nueva contraseña
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Actualizar contraseña y limpiar campos de recuperación
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -257,7 +251,7 @@ export const resetPassword = async (req, res) => {
 
     res.status(200).json({ message: 'Contraseña actualizada exitosamente. Ya puedes iniciar sesión.' });
   } catch (error) {
-    console.error(error);
+    console.error('Error en resetPassword:', error);
     res.status(500).json({ error: 'Error al restablecer la contraseña' });
   }
 };
