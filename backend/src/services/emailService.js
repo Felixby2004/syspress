@@ -63,7 +63,7 @@ export const sendVerificationEmail = async (toEmail, code) => {
     </div>
   `;
 
-  return await sendEmailViaGmailAPI(toEmail, 'Código de verificación - SysPress', html);
+  return await sendEmailViaGmailAPI(toEmail, 'Codigo de verificacion - SysPress', html);
 };
 
 // ===== ENVÍO DE CÓDIGO PARA RECUPERACIÓN =====
@@ -80,5 +80,5 @@ export const sendResetPasswordEmail = async (toEmail, code) => {
     </div>
   `;
 
-  return await sendEmailViaGmailAPI(toEmail, 'Recuperación de contraseña - SysPress', html);
+  return await sendEmailViaGmailAPI(toEmail, 'Recuperación de contrasena - SysPress', html);
 };
