@@ -139,19 +139,69 @@ export const changePassword = async (req, res) => {
   }
 };
 
+// Solicitar recuperación de contraseña
+export const requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findByEmail(email);
+    if (!user) {
+      // Por seguridad, no revelar si el email existe o no
+      return res.status(200).json({ message: 'Si el email existe, recibirás un código de recuperación. Revisa tu principal o carpeta de spam.' });
+    }
+
+    const code = crypto.randomInt(100000, 999999).toString();
+    await User.setResetPasswordCode(email, code);
+    const emailSent = await sendResetPasswordEmail(email, code);
+    if (!emailSent) {
+      return res.status(500).json({ error: 'Error al enviar el correo de recuperación' });
+    }
+
+    res.json({ message: 'Se ha enviado un código de recuperación a tu correo.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Verificar código de recuperación
+export const verifyResetCode = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    const user = await User.verifyResetPasswordCode(email, code);
+    if (!user) {
+      return res.status(400).json({ error: 'Código inválido o expirado.' });
+    }
+    res.json({ message: 'Código verificado correctamente.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ===== RECUPERACIÓN DE CONTRASEÑA =====
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findByEmail(email);
     if (!user) {
-      return res.status(200).json({ message: 'Si el email existe, recibirás un código de recuperación.' });
+      // Por seguridad, no revelamos si el email existe o no
+      return res.status(200).json({ message: 'Si el email existe, recibirás un código de recuperación. Revisa tu principal o carpeta de spam.' });
     }
 
+    // Generar código de 6 dígitos
     const code = crypto.randomInt(100000, 999999).toString();
-    await User.setResetPasswordCode(email, code);
+    const hashedCode = await bcrypt.hash(code, 10);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
 
-    // ✅ CORREGIDO: usar sendResetPasswordEmail
-    const emailSent = await sendResetPasswordEmail(email, code);
+    // Guardar en la base de datos
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: hashedCode,
+        resetPasswordExpires: expiresAt,
+      },
+    });
+
+    // ✅ Enviar correo con la función correcta
+    const emailSent = await sendResetPasswordEmail(email, code); // <- CAMBIADO AQUÍ
     if (!emailSent) {
       return res.status(500).json({ error: 'Error al enviar el correo de recuperación' });
     }
@@ -171,13 +221,33 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
     }
 
-    const user = await User.verifyResetPasswordCode(email, code);
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(400).json({ error: 'Código inválido o expirado.' });
+      return res.status(400).json({ error: 'Email no registrado' });
     }
 
-    await User.updatePassword(user.id, newPassword);
-    await User.clearResetPasswordCode(email);
+    if (!user.resetPasswordToken || !user.resetPasswordExpires) {
+      return res.status(400).json({ error: 'No hay solicitud de recuperación activa' });
+    }
+
+    if (new Date() > user.resetPasswordExpires) {
+      return res.status(400).json({ error: 'El código de recuperación ha expirado' });
+    }
+
+    const isValid = await bcrypt.compare(code, user.resetPasswordToken);
+    if (!isValid) {
+      return res.status(400).json({ error: 'Código de recuperación incorrecto' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+    });
 
     res.status(200).json({ message: 'Contraseña actualizada exitosamente. Ya puedes iniciar sesión.' });
   } catch (error) {
