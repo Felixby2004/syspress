@@ -139,43 +139,6 @@ export const changePassword = async (req, res) => {
   }
 };
 
-// Solicitar recuperación de contraseña
-export const requestPasswordReset = async (req, res) => {
-  try {
-    const { email } = req.body;
-    const user = await User.findByEmail(email);
-    if (!user) {
-      // Por seguridad, no revelar si el email existe o no
-      return res.status(200).json({ message: 'Si el email existe, recibirás un código de recuperación. Revisa tu principal o carpeta de spam.' });
-    }
-
-    const code = crypto.randomInt(100000, 999999).toString();
-    await User.setResetPasswordCode(email, code);
-    const emailSent = await sendResetPasswordEmail(email, code);
-    if (!emailSent) {
-      return res.status(500).json({ error: 'Error al enviar el correo de recuperación' });
-    }
-
-    res.json({ message: 'Se ha enviado un código de recuperación a tu correo.' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// Verificar código de recuperación
-export const verifyResetCode = async (req, res) => {
-  try {
-    const { email, code } = req.body;
-    const user = await User.verifyResetPasswordCode(email, code);
-    if (!user) {
-      return res.status(400).json({ error: 'Código inválido o expirado.' });
-    }
-    res.json({ message: 'Código verificado correctamente.' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
 // ===== RECUPERACIÓN DE CONTRASEÑA =====
 export const forgotPassword = async (req, res) => {
   try {
