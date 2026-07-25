@@ -42,7 +42,7 @@ const ForgotPassword = () => {
           <i className="bi bi-key" style={{ fontSize: '3rem', color: 'var(--accent)' }}></i>
         </div>
         <h1>Recuperar contraseña</h1>
-        <p className="subtitle">Ingresa tu email para recibir un código de verificación</p>
+        <p className="subtitle">Ingresa tu email para recibir un código de verificación. Si no aparece, ve en tu carpeta de spam.</p>
         {message && <div className="success">{message}</div>}
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleSubmit}>

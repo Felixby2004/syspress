@@ -146,7 +146,7 @@ export const requestPasswordReset = async (req, res) => {
     const user = await User.findByEmail(email);
     if (!user) {
       // Por seguridad, no revelar si el email existe o no
-      return res.status(200).json({ message: 'Si el email existe, recibirás un código de recuperación.' });
+      return res.status(200).json({ message: 'Si el email existe, recibirás un código de recuperación. Revisa tu principal o carpeta de spam.' });
     }
 
     const code = crypto.randomInt(100000, 999999).toString();
@@ -183,7 +183,7 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findByEmail(email);
     if (!user) {
       // Por seguridad, no revelamos si el email existe o no
-      return res.status(200).json({ message: 'Si el email existe, recibirás un código de recuperación.' });
+      return res.status(200).json({ message: 'Si el email existe, recibirás un código de recuperación. Revisa tu principal o carpeta de spam.' });
     }
 
     // Generar código de 6 dígitos
