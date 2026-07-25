@@ -16,10 +16,8 @@ oauth2Client.setCredentials({
 // ===== ENVÍO DE CORREO USANDO LA API DE GMAIL =====
 const sendEmailViaGmailAPI = async (toEmail, subject, htmlContent) => {
   try {
-    // Obtener Access Token
     const accessToken = await oauth2Client.getAccessToken();
 
-    // Crear mensaje en formato Base64 URL-safe
     const emailLines = [
       `To: ${toEmail}`,
       'Content-Type: text/html; charset=utf-8',
@@ -34,7 +32,6 @@ const sendEmailViaGmailAPI = async (toEmail, subject, htmlContent) => {
       .replace(/\+/g, '-')
       .replace(/\//g, '_');
 
-    // Enviar usando la API de Gmail
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
     const response = await gmail.users.messages.send({
       userId: 'me',
@@ -66,7 +63,7 @@ export const sendVerificationEmail = async (toEmail, code) => {
     </div>
   `;
 
-  return await sendEmailViaGmailAPI(toEmail, '🔐 Código de verificación - SysPress', html);
+  return await sendEmailViaGmailAPI(toEmail, 'Código de verificación - SysPress', html);
 };
 
 // ===== ENVÍO DE CÓDIGO PARA RECUPERACIÓN =====
@@ -83,5 +80,5 @@ export const sendResetPasswordEmail = async (toEmail, code) => {
     </div>
   `;
 
-  return await sendEmailViaGmailAPI(toEmail, '🔐 Recuperación de contraseña - SysPress', html);
+  return await sendEmailViaGmailAPI(toEmail, 'Recuperación de contraseña - SysPress', html);
 };
