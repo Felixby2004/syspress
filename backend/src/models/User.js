@@ -85,12 +85,12 @@ export const User = {
   // ===== MÉTODOS PARA RECUPERACIÓN DE CONTRASEÑA =====
   async setResetPasswordCode(email, plainCode) {
     const hashedCode = await bcrypt.hash(plainCode, 10);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     return await prisma.user.update({
       where: { email },
       data: {
-        resetPasswordToken: hashedCode,      // ← nombre correcto
-        resetPasswordExpires: expiresAt,      // ← nombre correcto
+        resetPasswordToken: hashedCode,
+        resetPasswordExpires: expiresAt,
       },
     });
   },
