@@ -82,14 +82,15 @@ export const User = {
     });
   },
 
+  // ===== MÉTODOS PARA RECUPERACIÓN DE CONTRASEÑA =====
   async setResetPasswordCode(email, plainCode) {
     const hashedCode = await bcrypt.hash(plainCode, 10);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
     return await prisma.user.update({
       where: { email },
       data: {
-        resetPasswordCodeHash: hashedCode,
-        resetPasswordExpiresAt: expiresAt,
+        resetPasswordToken: hashedCode,      // ← nombre correcto
+        resetPasswordExpires: expiresAt,      // ← nombre correcto
       },
     });
   },
@@ -97,10 +98,10 @@ export const User = {
   async verifyResetPasswordCode(email, plainCode) {
     const user = await this.findByEmail(email);
     if (!user) return null;
-    // Verificar si el código existe y no ha expirado
-    if (!user.resetPasswordCodeHash) return null;
-    if (new Date() > new Date(user.resetPasswordExpiresAt)) return null;
-    const isValid = await bcrypt.compare(plainCode, user.resetPasswordCodeHash);
+    // Verificar si el token existe y no ha expirado
+    if (!user.resetPasswordToken) return null;
+    if (new Date() > new Date(user.resetPasswordExpires)) return null;
+    const isValid = await bcrypt.compare(plainCode, user.resetPasswordToken);
     if (!isValid) return null;
     return user;
   },
@@ -110,8 +111,8 @@ export const User = {
     return await prisma.user.update({
       where: { email },
       data: {
-        resetPasswordCodeHash: null,
-        resetPasswordExpiresAt: null,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
       },
     });
   },
