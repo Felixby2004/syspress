@@ -49,9 +49,6 @@ const Login = () => {
         <div className="auth-footer">
           ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
         </div>
-        <div className="auth-footer" style={{ marginTop: '0.5rem' }}>
-          <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
-        </div>
       </div>
     </div>
   );
