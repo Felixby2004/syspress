@@ -2,12 +2,23 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Configurar transporte con Gmail (usando contraseña de aplicación)
+// Configurar transporte con Gmail usando IPv4 y puerto 587
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // true para 465, false para 587 (STARTTLS)
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASS,
+  },
+  // Forzar IPv4
+  family: 4,
+  // Timeouts para evitar bloqueos
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
